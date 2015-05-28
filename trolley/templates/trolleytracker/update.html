@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trolley Tracker</title>
+    <style>
+              #map { width: 600px; height: 400px; }
+    </style>
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+    <script src="http://cdn.jsdelivr.net/jquery/2.1.4/jquery.min.js"></script>
+  </head>
+  <body>
+    <div id="map"></div>
+    <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.3/moment.min.js"></script>
+    <script type="text/javascript">
+      var oMap; // map object
+      var currentPosMarker;
+      var trolleys = {};
+      function initMap(data){
+        console.log("lat: " + data.lat, "lng: " + data.lng);
+        window.oMap = L.map('map').setView([data.lat, data.lng], 13);
+        
+        L.tileLayer('https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', {
+          maxZoom: 18,
+          attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
+            '<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+            'Imagery © <a href="http://mapbox.com">Mapbox</a>',
+          id: 'examples.map-i875mjb7'
+        }).addTo(oMap);
+
+        getTrolleyLocation(oMap);
+        getUserLocation(oMap);
+      }
+
+      function getTrolleyLocation(map){
+        $ = jQuery;
+        
+        $.ajax({
+            url: '/location.json',
+            type: 'get',
+            dataType: 'json',
+            crossDomain: true,
+            success: function (data) {
+              console.log("success!", data);
+
+              var oMapMarker = L.marker([data.where.lat, data.where.lon])
+              .addTo(map)
+              .bindPopup("<p><b>Trolley #" + data.who + "</b><br />Last Seen " + moment(data.when).fromNow() + "</p>");
+              trolleys[data.who] = {
+                agentData: data,
+                mapMarker: oMapMarker
+              }
+            }
+          });
+      }
+      
+      /** 
+       * Attempt to geolocate the user through the browser, and, if 
+       * successful, add a pin for the user's current location and
+       * add a pin on it
+       */
+      function getUserLocation(map){
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(function(position){
+            console.log(position.coords.latitude + "," + position.coords.longitude);
+            oMap.setView([position.coords.latitude, position.coords.longitude], 13);
+            currentPosMarker = L.marker([position.coords.latitude, position.coords.longitude])
+              .addTo(map)
+              .bindPopup("<b>You are here!</b>");
+          });
+        }
+      }
+          
+          
+          (function($){
+            
+            initMap({lat: 34.852432, lng: -82.398216});
+    // // Provide your access token
+    // L.mapbox.accessToken = 'pk.eyJ1IjoiZGFjb2hlbmlpIiwiYSI6IjM0MTIxYWI5MmU1YmQzOTA3Zjg1Y2NkYmZjM2EzZjFlIn0.3sC5DcabtrGZ72WcF0EeDA';
+    // // Create a map in the div #map
+    // L.mapbox.map('map', 'mapbox.streets');
+          })(jQuery);
+        
+    </script>
+  </body>
+</html>

@@ -6,6 +6,8 @@ _(Additional documentation to be added soon.)_
 
 ### Miscellaneous notes
 
-`location.json` is a example of data from [the trolley tracker API](https://github.com/codeforgreenville/trolley-tracker-api).
+This uses the trolley tracker api to retrieve the locations to display (https://github.com/codeforgreenville/trolley-tracker-api).
 
-Chrome does not support browser geolocation from file URLs, so to use this feature, you must view the page via HTTP using a web server, e.g. by running `python -m SimpleHTTPServer` and viewing it on `http://localhost:8000/`. Note that this is not a required feature; it is used to center the map and display a marker.
+This django setup is using Python 3.  "py manage.py runserver" will run it locally.
+
+Chrome does not support browser geolocation from file URLs, so to use this feature, you must view the page via HTTP using a browser against the django web server.  Note that this is not a required feature; it is used to center the map and display a marker.

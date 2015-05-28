@@ -12,6 +12,7 @@
   </head>
   <body>
     <div id="map"></div>
+    <div id="getupdate" style="display: none;">Checking Location...</div>
     <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.3/moment.min.js"></script>
     <script type="text/javascript">
@@ -39,6 +40,7 @@
       function getTrolleyLocation(map, trolley){
         $ = jQuery;
         clearTimeout(checkTimer);
+        $('#getupdate').show();
         $.ajax({
             url: '/trolley/update/?id=' + trolley,
             type: 'get',
@@ -65,6 +67,7 @@
             complete: function(data) {
               //set the next call for 5 seconds
               checkTimer = setTimeout(function(){getTrolleyLocation(oMap, 1);}, 5000);
+               $('#getupdate').hide();
             }
           });
       }

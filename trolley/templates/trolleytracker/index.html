@@ -15,6 +15,7 @@
     <div id="getupdate" style="display: none;">Checking Location...</div>
     <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.3/moment.min.js"></script>
+    <script type="text/javascript" src="/static/trolleytracker/dummydata.js"></script>
     <script type="text/javascript">
       var oMap; // map object
       var currentPosMarker;
@@ -54,6 +55,9 @@
                 map.removeLayer(trolleys[data.who].mapMarker);
               }
 
+              console.log(data.where.lat);
+              console.log(data.where.lon);
+
               var oMapMarker = L.marker([data.where.lat, data.where.lon])
               .addTo(map)
               .bindPopup("<p><b>Trolley #" + data.who + "</b><br />Last Seen " + moment(data.when).fromNow() + "</p>");
@@ -70,6 +74,22 @@
                $('#getupdate').hide();
             }
           });
+      }
+
+      function drawTrolleyPath() {
+
+        var pointList = [];
+        dummydata.forEach(function(loc, index, array){
+          pointList.push(new L.LatLng(loc.lat, loc.lon));
+        });
+
+        var firstpolyline = new L.Polyline(pointList, {
+          color: 'red',
+          weight: 3,
+          opacity: 0.5,
+          smoothFactor: 1
+        });
+        firstpolyline.addTo(oMap);
       }
       
       /** 

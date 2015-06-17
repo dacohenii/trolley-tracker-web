@@ -17,6 +17,7 @@
     <div id="controls">
         <button id="showroute" onclick="javascript:drawTrolleyPath(oMap, 'first_route');">Show Route</button>
         <button id="hideroute" onclick="javascript:removeTrolleyPath(oMap, 'first_route');">Hide Route</button>
+        <input type="text" id="trolleytotrack" onchange="javascript:trolleyToTrack = jQuery('#trolleytotrack').val();">
     </div>
     <div id="getupdate" style="display: none;">Checking Location...</div>
     <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>

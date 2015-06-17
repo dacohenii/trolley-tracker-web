@@ -12,6 +12,10 @@
   </head>
   <body>
     <div id="map"></div>
+    <div id="controls">
+        <button id="showroute" onclick="javascript:drawTrolleyPath(oMap, 'first_route');">Show Route</button>
+        <button id="hideroute" onclick="javascript:removeTrolleyPath(oMap, 'first_route');">Hide Route</button>
+    </div>
     <div id="getupdate" style="display: none;">Checking Location...</div>
     <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.3/moment.min.js"></script>
@@ -20,7 +24,9 @@
       var oMap; // map object
       var currentPosMarker;
       var trolleys = {};
+      var routes = {};
       var checkTimer;
+      var trolleyToTrack = 5;
 
       function initMap(data){
         console.log("lat: " + data.lat, "lng: " + data.lng);
@@ -34,8 +40,8 @@
           id: 'examples.map-i875mjb7'
         }).addTo(oMap);
 
-        getTrolleyLocation(oMap, 1);
-        getUserLocation(oMap, 1);
+        getTrolleyLocation(oMap, trolleyToTrack);
+        getUserLocation(oMap);
       }
 
       function getTrolleyLocation(map, trolley){
@@ -62,7 +68,7 @@
               .addTo(map)
               .bindPopup("<p><b>Trolley #" + data.who + "</b><br />Last Seen " + moment(data.when).fromNow() + "</p>");
 
-              //add the data to the list of trolleys
+              //add the data to the trolleys object
               trolleys[data.who] = {
                 agentData: data,
                 mapMarker: oMapMarker
@@ -70,28 +76,39 @@
             },
             complete: function(data) {
               //set the next call for 5 seconds
-              checkTimer = setTimeout(function(){getTrolleyLocation(oMap, 1);}, 5000);
+              checkTimer = setTimeout(function(){getTrolleyLocation(oMap, trolleyToTrack);}, 5000);
                $('#getupdate').hide();
             }
           });
       }
 
-      function drawTrolleyPath() {
+      function buildRoute(data, route_name) {
+        //data is an array of lat/lon objects
+        //[{lat:1, lon:1}, {lat:2, lon:2}, ...]
 
         var pointList = [];
-        dummydata.forEach(function(loc, index, array){
+        data.forEach(function(loc, index, array){
           pointList.push(new L.LatLng(loc.lat, loc.lon));
         });
 
-        var firstpolyline = new L.Polyline(pointList, {
+        var routePolyLine = new L.Polyline(pointList, {
           color: 'red',
           weight: 3,
           opacity: 0.5,
           smoothFactor: 1
         });
-        firstpolyline.addTo(oMap);
+
+        //store the new polyline in the routes object
+        routes[route_name] = routePolyLine;
+      }
+
+      function drawTrolleyPath(map, route_name) {
+        routes[route_name].addTo(map);
       }
       
+      function removeTrolleyPath(map, route_name) {
+        map.removeLayer(routes[route_name]);
+      }
       /** 
        * Attempt to geolocate the user through the browser, and, if 
        * successful, add a pin for the user's current location and
@@ -113,6 +130,7 @@
       (function($){
         
         initMap({lat: 34.852432, lng: -82.398216});
+        buildRoute(dummydata, "first_route");
         // // Provide your access token
         // L.mapbox.accessToken = 'pk.eyJ1IjoiZGFjb2hlbmlpIiwiYSI6IjM0MTIxYWI5MmU1YmQzOTA3Zjg1Y2NkYmZjM2EzZjFlIn0.3sC5DcabtrGZ72WcF0EeDA';
         // // Create a map in the div #map

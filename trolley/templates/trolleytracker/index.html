@@ -8,6 +8,8 @@
               #map { width: 600px; height: 400px; }
     </style>
     <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css">
     <script src="http://cdn.jsdelivr.net/jquery/2.1.4/jquery.min.js"></script>
   </head>
   <body>
@@ -19,6 +21,7 @@
     <div id="getupdate" style="display: none;">Checking Location...</div>
     <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.3/moment.min.js"></script>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.min.js"></script>
     <script type="text/javascript" src="/static/trolleytracker/dummydata.js"></script>
     <script type="text/javascript">
       var oMap; // map object
@@ -31,7 +34,7 @@
       function initMap(data){
         console.log("lat: " + data.lat, "lng: " + data.lng);
         window.oMap = L.map('map').setView([data.lat, data.lng], 13);
-        
+        L.AwesomeMarkers.Icon.prototype.options.prefix = 'fa';
         L.tileLayer('https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', {
           maxZoom: 18,
           attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
@@ -63,8 +66,13 @@
 
               console.log(data.where.lat);
               console.log(data.where.lon);
-
-              var oMapMarker = L.marker([data.where.lat, data.where.lon])
+              var trolleyMarker = L.AwesomeMarkers.icon({
+                icon: 'bus',
+                markerColor: 'red'
+              });
+              var oMapMarker = L.marker([data.where.lat, data.where.lon], {
+                icon: trolleyMarker
+              })
               .addTo(map)
               .bindPopup("<p><b>Trolley #" + data.who + "</b><br />Last Seen " + moment(data.when).fromNow() + "</p>");
 
@@ -119,7 +127,14 @@
           navigator.geolocation.getCurrentPosition(function(position){
             console.log(position.coords.latitude + "," + position.coords.longitude);
             oMap.setView([position.coords.latitude, position.coords.longitude], 13);
-            currentPosMarker = L.marker([position.coords.latitude, position.coords.longitude])
+            var userPositionMarker = L.AwesomeMarkers.icon({
+              icon: 'star',
+              markerColor: 'green'
+            });
+
+            currentPosMarker = L.marker([position.coords.latitude, position.coords.longitude],{
+              icon: userPositionMarker
+            })
               .addTo(map)
               .bindPopup("<b>You are here!</b>");
           });

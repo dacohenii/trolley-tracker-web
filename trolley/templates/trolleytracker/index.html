@@ -5,7 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trolley Tracker</title>
     <style>
-              #map { width: 600px; height: 400px; }
+              body {padding:0; margin:0;}
+              html, body, #map { width: 100%; height: 100%; }
+
+              .trolley-stop-icon {
+                background-color:rgba(255,0,0,0.9);
+                border: 2px solid #fff;
+                border-radius: 50%;
+                width: 12px;
+                height: 12px;
+              }
+
     </style>
     <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
@@ -38,9 +48,20 @@
 			var routeDisplay = [false, false];
       var checkTimer;
       var trolleyToTrack = 5; //init to five because it's our test phone one, also set above
+      var oMapControl = L.Control.extend({
+          options: {
+            position: 'topright'
+          },
+          onAdd: function (map) {
+            // create the control container with a particular class name
+            var container = L.DomUtil.create('div', 'my-custom-control');
+            // ... initialize other DOM elements, add listeners, etc.
+            return container;
+          }
+        });
 
       function initMap(data){
-        console.log("lat: " + data.lat, "lng: " + data.lng);
+        //console.log("lat: " + data.lat, "lng: " + data.lng);
         window.oMap = L.map('map').setView([data.lat, data.lng], 13);
         L.AwesomeMarkers.Icon.prototype.options.prefix = 'fa';
         L.tileLayer('https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', {
@@ -53,19 +74,22 @@
 
         getTrolleyLocation(oMap, trolleyToTrack);
         getUserLocation(oMap);
+
+        oMap.addControl(new oMapControl());
+        jQuery('.my-custom-control').append(jQuery('#controls'));
       }
 
       function getTrolleyLocation(map, trolley){
         $ = jQuery;
         clearTimeout(checkTimer);
-        $('#getupdate').show();
+        //$('#getupdate').show();
         $.ajax({
             url: '/trolley/update/?id=' + trolley,
             type: 'get',
             dataType: 'json',
             crossDomain: true,
             success: function (data) {
-              console.log("success!", data);
+              //console.log("success!", data);
 
               //remove existing trolley marker for the one we're updating
               if (trolleys[data.who] != undefined) {
@@ -73,7 +97,7 @@
               }
 
               //console.log(data.where.lat);
-              //console.log(data.where.lon);
+              //console.log(data.where.lon);   3
               var trolleyMarker = L.AwesomeMarkers.icon({
                 icon: 'bus',
                 markerColor: 'red'
@@ -93,7 +117,7 @@
             complete: function(data) {
               //set the next call for 5 seconds
               checkTimer = setTimeout(function(){getTrolleyLocation(oMap, trolleyToTrack);}, 5000);
-               $('#getupdate').hide();
+               //$('#getupdate').hide();
             }
           });
       }
@@ -120,10 +144,7 @@
 
 			function buildStops(stoplocs) {
 				stoplocs.forEach(function(loc, index, array) {
-					var stopMarker = L.AwesomeMarkers.icon({
-						icon: 'chevron-circle-down',
-						markerColor: 'green'
-					});
+					var stopMarker = L.divIcon({className: "trolley-stop-icon"});
 					
 					var oMapMarker = L.marker([loc.lat, loc.lon], {
 						icon: stopMarker
@@ -172,7 +193,7 @@
       function getUserLocation(map){
         if (navigator.geolocation) {
           navigator.geolocation.getCurrentPosition(function(position){
-            console.log(position.coords.latitude + "," + position.coords.longitude);
+            //console.log(position.coords.latitude + "," + position.coords.longitude);
             oMap.setView([position.coords.latitude, position.coords.longitude], 16);
             var userPositionMarker = L.AwesomeMarkers.icon({
               icon: 'star',

@@ -25,11 +25,11 @@
   <body>
     <div id="map"></div>
     <div id="controls">
-        <button id="showroute" onclick="javascript:hideTrolleyPaths(oMap); drawTrolleyPath(oMap, 'route_1'); routeDisplay[1] = true;">Show Route 1</button>
+        <!-- <button id="showroute" onclick="javascript:hideTrolleyPaths(oMap); drawTrolleyPath(oMap, 'route_1'); routeDisplay[1] = true;">Show Route 1</button>
 				<button id="showroute" onclick="javascript:hideTrolleyPaths(oMap); drawTrolleyPath(oMap, 'route_2'); routeDisplay[2] = true;">Show Route 2</button>
-        <button id="hideroute" onclick="javascript:hideTrolleyPaths(oMap);">Hide Route</button>
-				<button id="showstops" onclick="javascript:showStops(oMap, stops); jQuery('#showstops').hide(); jQuery('#hidestops').show();">Show Stops</button>
-				<button id="hidestops" style="display: none;" onclick="javascript:hideStops(oMap, stops); jQuery('#hidestops').hide(); jQuery('#showstops').show();">Hide Stops</button>
+        <button id="hideroute" onclick="javascript:hideTrolleyPaths(oMap);">Hide Route</button> -->
+				<!-- <button id="showstops" onclick="javascript:showStops(oMap, stops); jQuery('#showstops').hide(); jQuery('#hidestops').show();">Show Stops</button>
+				<button id="hidestops" style="display: none;" onclick="javascript:hideStops(oMap, stops); jQuery('#hidestops').hide(); jQuery('#showstops').show();">Hide Stops</button> -->
         Trolley#: <input type="text" size="1" id="trolleytotrack" onchange="javascript:trolleyToTrack = jQuery('#trolleytotrack').val();" value=5>
     </div>
     <div id="getupdate" style="display: none;">Checking Location...</div>
@@ -77,6 +77,17 @@
 
         oMap.addControl(new oMapControl());
         jQuery('.my-custom-control').append(jQuery('#controls'));
+
+        var d = new Date();
+        if ((d.getDay() == 0 && d.getHours() > 13 && d.getHours() < 18) ||
+          (d.getDay() == 6 && d.getHours() > 10 && d.getHours() < 18)) {
+          drawTrolleyPath(oMap, 'route_2');
+          routeDisplay[2] = true;
+        } else {
+          drawTrolleyPath(oMap, 'route_1');
+          routeDisplay[1] = true;
+        }
+        showStops(oMap, stops);
       }
 
       function getTrolleyLocation(map, trolley){
@@ -210,11 +221,11 @@
       }
       
       (function($){
-        
-        initMap({lat: 34.852432, lng: -82.398216});
         buildRoute(dummydata, "route_1");
-				buildRoute(dummydata2, "route_2");
-				buildStops(dummystops);
+        buildRoute(dummydata2, "route_2");
+        buildStops(dummystops);        
+        initMap({lat: 34.852432, lng: -82.398216});
+
         // // Provide your access token
         // L.mapbox.accessToken = 'pk.eyJ1IjoiZGFjb2hlbmlpIiwiYSI6IjM0MTIxYWI5MmU1YmQzOTA3Zjg1Y2NkYmZjM2EzZjFlIn0.3sC5DcabtrGZ72WcF0EeDA';
         // // Create a map in the div #map

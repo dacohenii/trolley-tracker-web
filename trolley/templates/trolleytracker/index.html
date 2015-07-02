@@ -5,7 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trolley Tracker</title>
     <style>
-              #map { width: 600px; height: 400px; }
+              body {padding:0; margin:0;}
+              html, body, #map { width: 100%; height: 100%; }
+
+              .trolley-stop-icon {
+                background-color:rgba(255,0,0,0.9);
+                border: 2px solid #fff;
+                border-radius: 50%;
+                width: 12px;
+                height: 12px;
+              }
+
     </style>
     <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
@@ -15,24 +25,43 @@
   <body>
     <div id="map"></div>
     <div id="controls">
-        <button id="showroute" onclick="javascript:drawTrolleyPath(oMap, 'first_route');">Show Route</button>
-        <button id="hideroute" onclick="javascript:removeTrolleyPath(oMap, 'first_route');">Hide Route</button>
+        <!-- <button id="showroute" onclick="javascript:hideTrolleyPaths(oMap); drawTrolleyPath(oMap, 'route_1'); routeDisplay[1] = true;">Show Route 1</button>
+				<button id="showroute" onclick="javascript:hideTrolleyPaths(oMap); drawTrolleyPath(oMap, 'route_2'); routeDisplay[2] = true;">Show Route 2</button>
+        <button id="hideroute" onclick="javascript:hideTrolleyPaths(oMap);">Hide Route</button> -->
+				<!-- <button id="showstops" onclick="javascript:showStops(oMap, stops); jQuery('#showstops').hide(); jQuery('#hidestops').show();">Show Stops</button>
+				<button id="hidestops" style="display: none;" onclick="javascript:hideStops(oMap, stops); jQuery('#hidestops').hide(); jQuery('#showstops').show();">Hide Stops</button> -->
+        Trolley#: <input type="text" size="1" id="trolleytotrack" onchange="javascript:trolleyToTrack = jQuery('#trolleytotrack').val();" value=5>
     </div>
     <div id="getupdate" style="display: none;">Checking Location...</div>
     <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.3/moment.min.js"></script>
     <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.min.js"></script>
     <script type="text/javascript" src="/static/trolleytracker/dummydata.js"></script>
+		<script type="text/javascript" src="/static/trolleytracker/dummydata2.js"></script>
+		<script type="text/javascript" src="/static/trolleytracker/dummystops.js"></script>
     <script type="text/javascript">
       var oMap; // map object
       var currentPosMarker;
       var trolleys = {};
       var routes = {};
+			var stops = {};
+			var routeDisplay = [false, false];
       var checkTimer;
-      var trolleyToTrack = 5;
+      var trolleyToTrack = 5; //init to five because it's our test phone one, also set above
+      var oMapControl = L.Control.extend({
+          options: {
+            position: 'topright'
+          },
+          onAdd: function (map) {
+            // create the control container with a particular class name
+            var container = L.DomUtil.create('div', 'my-custom-control');
+            // ... initialize other DOM elements, add listeners, etc.
+            return container;
+          }
+        });
 
       function initMap(data){
-        console.log("lat: " + data.lat, "lng: " + data.lng);
+        //console.log("lat: " + data.lat, "lng: " + data.lng);
         window.oMap = L.map('map').setView([data.lat, data.lng], 13);
         L.AwesomeMarkers.Icon.prototype.options.prefix = 'fa';
         L.tileLayer('https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', {
@@ -45,27 +74,41 @@
 
         getTrolleyLocation(oMap, trolleyToTrack);
         getUserLocation(oMap);
+
+        oMap.addControl(new oMapControl());
+        jQuery('.my-custom-control').append(jQuery('#controls'));
+
+        var d = new Date();
+        if ((d.getDay() == 0 && d.getHours() > 13 && d.getHours() < 18) ||
+          (d.getDay() == 6 && d.getHours() > 10 && d.getHours() < 18)) {
+          drawTrolleyPath(oMap, 'route_2');
+          routeDisplay[2] = true;
+        } else {
+          drawTrolleyPath(oMap, 'route_1');
+          routeDisplay[1] = true;
+        }
+        showStops(oMap, stops);
       }
 
       function getTrolleyLocation(map, trolley){
         $ = jQuery;
         clearTimeout(checkTimer);
-        $('#getupdate').show();
+        //$('#getupdate').show();
         $.ajax({
             url: '/trolley/update/?id=' + trolley,
             type: 'get',
             dataType: 'json',
             crossDomain: true,
             success: function (data) {
-              console.log("success!", data);
+              //console.log("success!", data);
 
               //remove existing trolley marker for the one we're updating
               if (trolleys[data.who] != undefined) {
                 map.removeLayer(trolleys[data.who].mapMarker);
               }
 
-              console.log(data.where.lat);
-              console.log(data.where.lon);
+              //console.log(data.where.lat);
+              //console.log(data.where.lon);   3
               var trolleyMarker = L.AwesomeMarkers.icon({
                 icon: 'bus',
                 markerColor: 'red'
@@ -85,7 +128,7 @@
             complete: function(data) {
               //set the next call for 5 seconds
               checkTimer = setTimeout(function(){getTrolleyLocation(oMap, trolleyToTrack);}, 5000);
-               $('#getupdate').hide();
+               //$('#getupdate').hide();
             }
           });
       }
@@ -110,12 +153,48 @@
         routes[route_name] = routePolyLine;
       }
 
+			function buildStops(stoplocs) {
+				stoplocs.forEach(function(loc, index, array) {
+					var stopMarker = L.divIcon({className: "trolley-stop-icon"});
+					
+					var oMapMarker = L.marker([loc.lat, loc.lon], {
+						icon: stopMarker
+					});
+
+					stops[index] = oMapMarker;
+				});
+			}
+			
+			function showStops(map, showStops) {
+				//showstops is an object that has numbered stop markers
+				//showstops.1 = marker
+				//this is because the stops don't have names yet
+
+				for (var stop in showStops) {
+					showStops[stop].addTo(map).bindPopup("<p><b>Stop #" + stop + "</b></p>");			
+				}
+			}
+			
+			function hideStops(map, hideStops) {
+				//hideStops is an object that has numbered stop markers
+				//hideStops.1 = marker
+				//this is because the stops don't have names yet
+
+				for (var stop in hideStops) {
+					map.removeLayer(hideStops[stop]);			
+				}
+			}
+	  
       function drawTrolleyPath(map, route_name) {
         routes[route_name].addTo(map);
       }
       
-      function removeTrolleyPath(map, route_name) {
-        map.removeLayer(routes[route_name]);
+      function hideTrolleyPaths(map) {
+				routeDisplay.forEach(function(route, index, array) {
+					if (route) {
+						map.removeLayer(routes['route_' + index]);
+					}
+				});
       }
       /** 
        * Attempt to geolocate the user through the browser, and, if 
@@ -125,8 +204,8 @@
       function getUserLocation(map){
         if (navigator.geolocation) {
           navigator.geolocation.getCurrentPosition(function(position){
-            console.log(position.coords.latitude + "," + position.coords.longitude);
-            oMap.setView([position.coords.latitude, position.coords.longitude], 13);
+            //console.log(position.coords.latitude + "," + position.coords.longitude);
+            oMap.setView([position.coords.latitude, position.coords.longitude], 16);
             var userPositionMarker = L.AwesomeMarkers.icon({
               icon: 'star',
               markerColor: 'green'
@@ -140,12 +219,13 @@
           });
         }
       }
-          
       
       (function($){
-        
+        buildRoute(dummydata, "route_1");
+        buildRoute(dummydata2, "route_2");
+        buildStops(dummystops);        
         initMap({lat: 34.852432, lng: -82.398216});
-        buildRoute(dummydata, "first_route");
+
         // // Provide your access token
         // L.mapbox.accessToken = 'pk.eyJ1IjoiZGFjb2hlbmlpIiwiYSI6IjM0MTIxYWI5MmU1YmQzOTA3Zjg1Y2NkYmZjM2EzZjFlIn0.3sC5DcabtrGZ72WcF0EeDA';
         // // Create a map in the div #map

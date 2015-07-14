@@ -163,6 +163,19 @@
 
 					stops[index] = oMapMarker;
 				});
+
+        //adding in the extra stop for the alternate route
+        var d = new Date();
+        if ((d.getDay() == 0 && d.getHours() > 13 && d.getHours() < 18) ||
+          (d.getDay() == 6 && d.getHours() > 10 && d.getHours() < 18)) {
+          
+          var stopMarker = L.divIcon({className: "trolley-stop-icon"});
+            
+          var oMapMarker = L.marker([dummystops2[0].lat, dummystops2[0].lon], {
+            icon: stopMarker
+          });
+          stops[stops.length] = oMapMarker;
+        }
 			}
 			
 			function showStops(map, showStops) {

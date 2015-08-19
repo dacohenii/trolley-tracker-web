@@ -9,11 +9,26 @@
               html, body, #map { width: 100%; height: 100%; }
 
               .trolley-stop-icon {
-                background-color:rgba(255,0,0,0.9);
                 border: 2px solid #fff;
                 border-radius: 50%;
                 width: 12px;
                 height: 12px;
+              }
+
+              .trolley-stop-icon.red {
+                background-color: red;
+              }
+
+              .trolley-stop-icon.green {
+                background-color: green;
+              }
+
+              .trolley-stop-icon.blue {
+                background-color: blue;
+              }
+
+              .leaflet-control-attribution {
+                display: none;
               }
 
     </style>
@@ -36,13 +51,11 @@
     <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.3/moment.min.js"></script>
     <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.min.js"></script>
-    <script type="text/javascript" src="/static/trolleytracker/dummydata.js"></script>
-		<script type="text/javascript" src="/static/trolleytracker/dummydata2.js"></script>
     <script type="text/javascript" src="/static/trolleytracker/textpath/leaflet.textpath.js"></script>
     <script type="text/javascript">
       var oMap; // map object
       var currentPosMarker;
-      var routes = {};
+      var routes = [];
 			var stops = {};
       var trolleys = {};
 			var routeDisplay = [false, false];
@@ -65,28 +78,18 @@
         L.AwesomeMarkers.Icon.prototype.options.prefix = 'fa';
         L.tileLayer('http://api.tiles.mapbox.com/v4/linktheoriginal.44f8689d/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibGlua3RoZW9yaWdpbmFsIiwiYSI6IjFjODFkODU1NGVkNWJhODQ2MTk5ZTk0OTVjNWYyZDE0In0.ptQUIfB07dQrUwDM2uMgUw', {
           maxZoom: 18,
-          attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
-            '<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
-            'Imagery © <a href="http://mapbox.com">Mapbox</a>',
           id: 'examples.map-i875mjb7'
         }).addTo(oMap);
 
         getTrolleyLocations(oMap);
         getUserLocation(oMap);
 
-        //oMap.addControl(new oMapControl());
-        //jQuery('.my-custom-control').append(jQuery('#controls'));
+        oMap.addControl(new oMapControl());
+        jQuery('.my-custom-control').append("<div class='question-background'><i class='fa fa-question' onclick=\"javascript:jQuery('#info').show();\"></i></div><div id='info' class='info-popup' style='display:none;'><i class='fa fa-close' onclick=\"javascript:jQuery('#info').hide();\"></i>Map data &copy; <a href='http://openstreetmap.org'>OpenStreetMap</a> contributors, <a href='http://creativecommons.org/licenses/by-sa/2.0/'>CC-BY-SA</a>, Imagery © <a href='http://mapbox.com'>Mapbox</a><br>Powered by Leaflet.js!<br><a href='mailto:yeahthattrolley@gmail.com'>Contact Us!</a></div>");
 
-        var d = new Date();
-        if ((d.getDay() == 0 && d.getHours() > 13 && d.getHours() < 18) ||
-          (d.getDay() == 6 && d.getHours() > 10 && d.getHours() < 18)) {
-          drawTrolleyPath(oMap, 'route_2');
-          routeDisplay[2] = true;
-        } else {
-          drawTrolleyPath(oMap, 'route_1');
-          routeDisplay[1] = true;
-        }
-        //showStops(oMap, stops);
+        routes.forEach(function(route, routeIndex){
+          route.addTo(oMap);
+        });
       }
 
       function getTrolleyLocations(map){
@@ -107,60 +110,54 @@
                   map.removeLayer(trolleys[data.ID].mapMarker);
                 }
 
-//                if (data.running) {
-                  //console.log(data.where.lat);
-                  //console.log(data.where.lon);
-                  var trolleyMarker = L.AwesomeMarkers.icon({
-                    icon: 'bus',
-                    markerColor: 'red'
-                  });
+                var trolleyMarker = L.AwesomeMarkers.icon({
+                  icon: 'bus',
+                  markerColor: 'red'
+                });
 
-                  var oMapMarker = L.marker([data.CurrentLat, data.CurrentLon], {
-                    icon: trolleyMarker
-                  })
-                  .addTo(map)
-                  .bindPopup("<p><b>Trolley #" + data.ID + "</b></p>");
+                var oMapMarker = L.marker([data.CurrentLat, data.CurrentLon], {
+                  icon: trolleyMarker
+                })
+                .addTo(map);
 
-                  //add the data to the trolleys object
-                  trolleys[data.ID] = {
-                    agentData: data,
-                    mapMarker: oMapMarker
-                  };
-//                }
+                //add the data to the trolleys object
+                trolleys[data.ID] = {
+                  agentData: data,
+                  mapMarker: oMapMarker
+                };
               });
             },
             complete: function(data) {
               //set the next call for 5 seconds
-              checkTimer = setTimeout(function(){getTrolleyLocations(oMap);}, 5000);
-               //$('#getupdate').hide();
+              checkTimer = setTimeout(function(){getTrolleyLocations(oMap);}, 10000);
             }
           });
       }
 
-      function buildRoute(data, route_name) {
+      function buildRoute(data, route_name, color) {
         //data is an array of lat/lon objects
         //[{lat:1, lon:1}, {lat:2, lon:2}, ...]
 
         var pointList = [];
         data.forEach(function(loc, index, array){
-          pointList.push(new L.LatLng(loc.lat, loc.lon));
+          pointList.push(new L.LatLng(loc.Lat, loc.Lon));
         });
 
         var routePolyLine = new L.Polyline(pointList, {
-          color: 'red',
+          color: color,
           weight: 3,
           opacity: 0.5,
           smoothFactor: 1
         });
 
         //store the new polyline in the routes object
-        routePolyLine.setText('  ►  ', {repeat: true, attributes: {fill: 'red'}});
-        routes[route_name] = routePolyLine;
+        routePolyLine.setText('  ►  ', {repeat: true, attributes: {fill: color}});
+        routes.push(routePolyLine);
       }
 
-			function buildStops(stoplocs) {
+			function buildStops(stoplocs, color) {
 				stoplocs.forEach(function(loc, index, array) {
-					var stopMarker = L.divIcon({className: "trolley-stop-icon"});
+					var stopMarker = L.divIcon({className: "trolley-stop-icon " + color});
 					
 					var oMapMarker = L.marker([loc.Lat, loc.Lon], {
 						icon: stopMarker
@@ -180,10 +177,6 @@
 					map.removeLayer(hideStops[stop]);			
 				}
 			}
-	  
-      function drawTrolleyPath(map, route_name) {
-        routes[route_name].addTo(map);
-      }
       
       function hideTrolleyPaths(map) {
 				routeDisplay.forEach(function(route, index, array) {
@@ -216,12 +209,26 @@
         }
       }
       
+      function routeColor(routeIndex) {
+        colors = ["red", "green", "blue"];
+        return colors[routeIndex];
+      }
+
       (function($){
-        buildRoute(dummydata, "route_1");
-        buildRoute(dummydata2, "route_2");
-        
+        //buildRoute(dummydata, "route_1");
+        //buildRoute(dummydata2, "route_2");
+        routedata = jQuery.parseJSON('{{routes|safe}}');
+        routedata.forEach(function(route, routeIndex) {
+          buildRoute(route.RouteShape, "route_" + routeIndex, routeColor(routeIndex));
+        });
+
         initMap({lat: 34.852432, lng: -82.398216});
-        buildStops(jQuery.parseJSON('{{datarequest|safe}}'));
+
+        routedata.forEach(function(route, routeIndex) {
+          buildStops(route.Stops, routeColor(routeIndex));
+        });
+
+        //buildStops(jQuery.parseJSON('{{datarequest|safe}}'));
         getTrolleyLocations(oMap);
 
         // // Provide your access token

@@ -221,6 +221,8 @@
 						icon: stopMarker
 					});
 
+          oMapMarker.Name = loc.Name;
+
           bStopExists = false;
 
           stops.forEach(function(existloc, existindex, existarray) {
@@ -237,7 +239,7 @@
 
       function addStops() {
         stops.forEach(function(loc, index, array) {
-          loc.addTo(oMap);
+          loc.addTo(oMap).bindPopup("<p><b>" + loc.Name + "</b></p>");
         });
       }
 

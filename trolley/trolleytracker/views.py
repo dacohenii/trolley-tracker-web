@@ -22,5 +22,12 @@ def track(request):
 	return render(request, 'trolleytracker/index.html', context)
 	
 def update(request):
-	datarequest = urllib.request.Request("http://tracker.wallinginfosystems.com/api/v1/Trolleys")
-	return HttpResponse(urllib.request.urlopen(datarequest).read())
+	trolleys = []
+
+	activetrolleys = json.loads(urllib.request.urlopen(urllib.request.Request("http://tracker.wallinginfosystems.com/api/v1/Trolleys/Running")).read().decode('utf-8'))
+
+	for trolley in activetrolleys:
+		trolleys.append(json.loads(urllib.request.urlopen(urllib.request.Request("http://tracker.wallinginfosystems.com/api/v1/Trolleys/" + str(trolley['ID']))).read().decode('utf-8')))
+
+
+	return HttpResponse(json.dumps(trolleys))

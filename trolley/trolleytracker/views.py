@@ -14,7 +14,7 @@ def track(request):
 		routes.append(json.loads(urllib.request.urlopen(urllib.request.Request("http://tracker.wallinginfosystems.com/api/v1/Routes/" + str(route['ID']))).read().decode('utf-8')))
 
 	#get the active trolley data
-	trolleys = json.loads(urllib.request.urlopen(urllib.request.Request("http://tracker.wallinginfosystems.com/api/v1/Trolleys")).read().decode('utf-8'))
+	#trolleys = json.loads(urllib.request.urlopen(urllib.request.Request("http://tracker.wallinginfosystems.com/api/v1/Trolleys")).read().decode('utf-8'))
 
 	context = {
 		'routes': json.dumps(routes)

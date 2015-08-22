@@ -5,31 +5,76 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trolley Tracker</title>
     <style>
-              body {padding:0; margin:0;}
-              html, body, #map { width: 100%; height: 100%; }
+      body {padding:0; margin:0;}
+      html, body, #map { width: 100%; height: 100%; }
 
-              .trolley-stop-icon {
-                border: 2px solid #fff;
-                border-radius: 50%;
-                width: 12px;
-                height: 12px;
-              }
+      .trolley-stop-icon {
+        border: 2px solid #fff;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+      }
 
-              .trolley-stop-icon.red {
-                background-color: red;
-              }
+      .trolley-stop-icon.red {
+        background: red;
+      }
 
-              .trolley-stop-icon.green {
-                background-color: green;
-              }
+      .trolley-stop-icon.green {
+        background-color: green;
+      }
 
-              .trolley-stop-icon.blue {
-                background-color: blue;
-              }
+      .trolley-stop-icon.blue {
+        background-color: blue;
+      }
 
-              .leaflet-control-attribution {
-                display: none;
-              }
+      .trolley-stop-icon.red-green {
+        background-color: linear-gradient(to right, red 50%, green 50%);
+      }
+
+      .trolley-stop-icon.red-green-blue {
+        background: linear-gradient(to right, red 33%, green 33%, green 66%, blue 66%)
+      }
+
+      .trolley-stop-icon.green-blue {
+        background-color: linear-gradient(to right, green 50%, blue 50%);
+      }
+
+      .leaflet-control-attribution {
+        display: none;
+      }
+
+      .question-background {
+        border-radius: 4px;
+        width: 30px;
+        height: 30px;
+        font-size: 22px;
+        background-color: white;
+        text-align: center;
+        border: 1px solid gray;
+      }
+
+      .info-popup {
+        width: 60%;
+        position: absolute;
+        left: 20%;
+        right: 20%;
+        z-index: 9999;
+        top: 10%;
+        background-color: white;
+        border-style: solid;
+        border-color: gray;
+        border-radius: 10px;
+      }
+
+      .info-popup p {
+        text-align: center;
+        padding-right: 5px;
+        padding-left: 5px;
+      }
+
+      .button-close {
+        padding: 10px;
+      }
 
     </style>
     <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
@@ -38,28 +83,42 @@
     <script src="http://cdn.jsdelivr.net/jquery/2.1.4/jquery.min.js"></script>
   </head>
   <body>
-    <div id="map"></div>
-    <div id="controls">
-        <!-- <button id="showroute" onclick="javascript:hideTrolleyPaths(oMap); drawTrolleyPath(oMap, 'route_1'); routeDisplay[1] = true;">Show Route 1</button>
-				<button id="showroute" onclick="javascript:hideTrolleyPaths(oMap); drawTrolleyPath(oMap, 'route_2'); routeDisplay[2] = true;">Show Route 2</button>
-        <button id="hideroute" onclick="javascript:hideTrolleyPaths(oMap);">Hide Route</button> -->
-				<!-- <button id="showstops" onclick="javascript:showStops(oMap, stops); jQuery('#showstops').hide(); jQuery('#hidestops').show();">Show Stops</button>
-				<button id="hidestops" style="display: none;" onclick="javascript:hideStops(oMap, stops); jQuery('#hidestops').hide(); jQuery('#showstops').show();">Hide Stops</button> -->
-        Trolley#: <input type="text" size="1" id="trolleytotrack" onchange="javascript:trolleyToTrack = jQuery('#trolleytotrack').val();" value=5>
+
+    <div id='info' class='info-popup' style='display:none;'>
+      <p>Map data is from <a href='http://openstreetmap.org'>OpenStreetMap&copy;</a> contributors, <a href='http://creativecommons.org/licenses/by-sa/2.0/'>CC-BY-SA</a>.</p>
+      <p>Imagery&copy; <a href='http://mapbox.com'>Mapbox</a></p>
+      <p>Powered by <a href='http://leafletjs.com'>Leaflet.js</a>
+      <p>API Powered by <a href="http://wallingis.com/">Walling Info Systems</a>
+      <p>Built by the Code For Greenville Brigade: <a href="https://github.com/codeforgreenville">Github</a></p>
+      <p><a href='mailto:yeahthattrolley@gmail.com'>Contact Us!</a></p>
+      <p><button name="modal-close" class="button-close" onclick="javascript:jQuery('#info').hide(); jQuery('#info-question').show();"><i class='fa fa-close'></i>Close</button></p>
     </div>
-    <div id="getupdate" style="display: none;">Checking Location...</div>
+
+    <!-- main map div -->
+    <div id="map"></div>
+
+    <!-- hidden div for the control html - this is copied into the mapbox control with .clone().append() -->
+    <div id="controls">
+      <div id='info-question' class='question-background' onclick="javascript:jQuery('#info').show(); jQuery('#info-question').hide();"><i class='fa fa-question'></i></div>
+    </div>
+
+    <!-- script includes -->
     <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.3/moment.min.js"></script>
     <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.min.js"></script>
     <script type="text/javascript" src="/static/trolleytracker/textpath/leaflet.textpath.js"></script>
     <script type="text/javascript">
+
       var oMap; // map object
-      var currentPosMarker;
-      var routes = [];
-			var stops = {};
-      var trolleys = {};
-			var routeDisplay = [false, false];
-      var checkTimer;
+      var currentPosMarker; //user location via browser get location
+      var routes = []; //array of all routes
+			var stops = []; //array of all stops (for all routes)
+      var trolleys = {}; //dictionary of trolleys
+      var routecolors = ["red", "green", "blue"]; //used to set route and stop colors
+			var routeDisplay = [false, false]; //used for toggling route display - not currently toggleable
+      var checkTimer; //Timer object to check for trolley location updates
+
+      //custom control
       var oMapControl = L.Control.extend({
           options: {
             position: 'topright'
@@ -85,11 +144,7 @@
         getUserLocation(oMap);
 
         oMap.addControl(new oMapControl());
-        jQuery('.my-custom-control').append("<div class='question-background'><i class='fa fa-question' onclick=\"javascript:jQuery('#info').show();\"></i></div><div id='info' class='info-popup' style='display:none;'><i class='fa fa-close' onclick=\"javascript:jQuery('#info').hide();\"></i>Map data &copy; <a href='http://openstreetmap.org'>OpenStreetMap</a> contributors, <a href='http://creativecommons.org/licenses/by-sa/2.0/'>CC-BY-SA</a>, Imagery © <a href='http://mapbox.com'>Mapbox</a><br>Powered by Leaflet.js!<br><a href='mailto:yeahthattrolley@gmail.com'>Contact Us!</a></div>");
-
-        routes.forEach(function(route, routeIndex){
-          route.addTo(oMap);
-        });
+        jQuery('.my-custom-control').append(jQuery('#controls').clone());
       }
 
       function getTrolleyLocations(map){
@@ -110,6 +165,7 @@
                   map.removeLayer(trolleys[data.ID].mapMarker);
                 }
 
+                //currently no way to tie trolleys to routes - so they're all one color
                 var trolleyMarker = L.AwesomeMarkers.icon({
                   icon: 'bus',
                   markerColor: 'red'
@@ -129,7 +185,7 @@
             },
             complete: function(data) {
               //set the next call for 5 seconds
-              checkTimer = setTimeout(function(){getTrolleyLocations(oMap);}, 10000);
+              checkTimer = setTimeout(function(){getTrolleyLocations(oMap);}, 5000);
             }
           });
       }
@@ -150,8 +206,10 @@
           smoothFactor: 1
         });
 
-        //store the new polyline in the routes object
+        //use the settext plugin to add directional arrows to the route.
         routePolyLine.setText('  ►  ', {repeat: true, attributes: {fill: color}});
+
+        //store the new polyline in the routes object
         routes.push(routePolyLine);
       }
 
@@ -163,16 +221,34 @@
 						icon: stopMarker
 					});
 
-					stops[index] = oMapMarker;
-          stops[index].addTo(oMap).bindPopup("<p><b>" + loc.Name + "</b></p>");   
+          bStopExists = false;
+
+          stops.forEach(function(existloc, existindex, existarray) {
+            if (existloc._latlng.lat == loc.Lat && existloc._latlng.lng == loc.Lon) {
+              //then this stop is on two routes.  relying on setting the color name as the LAST class argument.  (first is trolley-stop-icon)
+              //this will build color strings of all colors to show (red-green-blue if it's on three routes initialized in that order)
+              existloc.options.icon.options.className = existloc.options.icon.options.className + "-" + color
+            }
+          });
+
+					stops.push(oMapMarker);
 				});
 			}
+
+      function addStops() {
+        stops.forEach(function(loc, index, array) {
+          loc.addTo(oMap);
+        });
+      }
+
+      function addRoutes() {
+        routes.forEach(function(route, routeIndex){
+          route.addTo(oMap);
+        });
+      }
 			
 			function hideStops(map, hideStops) {
-				//hideStops is an object that has numbered stop markers
-				//hideStops.1 = marker
-				//this is because the stops don't have names yet
-
+				//this is currently not used - left in for future use
 				for (var stop in hideStops) {
 					map.removeLayer(hideStops[stop]);			
 				}
@@ -185,10 +261,11 @@
 					}
 				});
       }
-      /** 
+
+      /*
        * Attempt to geolocate the user through the browser, and, if 
        * successful, add a pin for the user's current location and
-       * add a pin on it
+       * add a pin on it.  This only runs once on pageload.
        */
       function getUserLocation(map){
         if (navigator.geolocation) {
@@ -208,33 +285,24 @@
           });
         }
       }
-      
-      function routeColor(routeIndex) {
-        colors = ["red", "green", "blue"];
-        return colors[routeIndex];
-      }
 
       (function($){
-        //buildRoute(dummydata, "route_1");
-        //buildRoute(dummydata2, "route_2");
+
         routedata = jQuery.parseJSON('{{routes|safe}}');
         routedata.forEach(function(route, routeIndex) {
-          buildRoute(route.RouteShape, "route_" + routeIndex, routeColor(routeIndex));
+          buildRoute(route.RouteShape, "route_" + routeIndex, routecolors[routeIndex]);
+        });
+
+        routedata.forEach(function(route, routeIndex) {
+          buildStops(route.Stops, routecolors[routeIndex]);
         });
 
         initMap({lat: 34.852432, lng: -82.398216});
 
-        routedata.forEach(function(route, routeIndex) {
-          buildStops(route.Stops, routeColor(routeIndex));
-        });
-
-        //buildStops(jQuery.parseJSON('{{datarequest|safe}}'));
+        addRoutes();
+        addStops();
         getTrolleyLocations(oMap);
 
-        // // Provide your access token
-        // L.mapbox.accessToken = 'pk.eyJ1IjoiZGFjb2hlbmlpIiwiYSI6IjM0MTIxYWI5MmU1YmQzOTA3Zjg1Y2NkYmZjM2EzZjFlIn0.3sC5DcabtrGZ72WcF0EeDA';
-        // // Create a map in the div #map
-        // L.mapbox.map('map', 'mapbox.streets');
       })(jQuery);
 
     </script>

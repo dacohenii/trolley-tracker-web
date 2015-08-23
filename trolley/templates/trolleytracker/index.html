@@ -98,10 +98,12 @@
     <div id="map"></div>
 
     <!-- hidden div for the control html - this is copied into the mapbox control with .clone().append() -->
-    <div id="controls">
-      <div id='info-question' class='question-background' onclick="javascript:jQuery('#info').show(); jQuery('#info-question').hide();"><i class='fa fa-question'></i></div>
+    <div id="controls_container" style="display: none;">
+      <div id="controls">
+        <div id='info-question' class='question-background' onclick="javascript:jQuery('#info').show(); jQuery('#info-question').hide();"><i class='fa fa-question'></i></div>
+      </div>
     </div>
-
+    
     <!-- script includes -->
     <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.3/moment.min.js"></script>

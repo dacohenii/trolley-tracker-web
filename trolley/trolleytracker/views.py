@@ -1,9 +1,11 @@
 from django.shortcuts import render
 from django.http import HttpResponse
+from django.views.decorators.clickjacking import xframe_options_exempt
 import urllib.request
 import json
 
 # Create your views here.
+@xframe_options_exempt
 def track(request):
 	#get the list of currently active routes
 	activeroutes = json.loads(urllib.request.urlopen(urllib.request.Request("http://tracker.wallinginfosystems.com/api/v1/Routes/Active")).read().decode('utf-8'))
@@ -20,7 +22,8 @@ def track(request):
 		'routes': json.dumps(routes)
 	}
 	return render(request, 'trolleytracker/index.html', context)
-	
+
+@xframe_options_exempt	
 def update(request):
 	trolleys = []
 

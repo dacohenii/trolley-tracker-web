@@ -11,6 +11,12 @@ def track(request):
 	activeroutes = json.loads(urllib.request.urlopen(urllib.request.Request("http://tracker.wallinginfosystems.com/api/v1/Routes/Active")).read().decode('utf-8'))
 	routes = []
 
+	schedules = json.loads(urllib.request.urlopen(urllib.request.Request("http://tracker.wallinginfosystems.com/api/v1/RouteSchedules")).read().decode('utf-8'))
+
+	schedule = []
+	for routeschedule in schedules:
+		schedule.append("Route " + str(routeschedule['ID']) + ": " + str(routeschedule['DayOfWeek']) + " " + str(routeschedule['StartTime']) + " - " + str(routeschedule['EndTime']))
+
 	for route in activeroutes:
 		#get the route definition for each active route
 		routes.append(json.loads(urllib.request.urlopen(urllib.request.Request("http://tracker.wallinginfosystems.com/api/v1/Routes/" + str(route['ID']))).read().decode('utf-8')))
@@ -19,7 +25,8 @@ def track(request):
 	#trolleys = json.loads(urllib.request.urlopen(urllib.request.Request("http://tracker.wallinginfosystems.com/api/v1/Trolleys")).read().decode('utf-8'))
 
 	context = {
-		'routes': json.dumps(routes)
+		'routes': json.dumps(routes),
+		'schedule': json.dumps(schedule)
 	}
 	return render(request, 'trolleytracker/index.html', context)
 

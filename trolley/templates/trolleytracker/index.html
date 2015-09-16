@@ -15,28 +15,32 @@
         height: 20px;
       }
 
-      .trolley-stop-icon.red {
-        background: red;
+      .trolley-stop-icon.first {
+        background: #7659D1;
       }
 
-      .trolley-stop-icon.green {
-        background-color: green;
+      .trolley-stop-icon.second {
+        background-color: #9AB87A;
       }
 
-      .trolley-stop-icon.blue {
-        background-color: blue;
+      .trolley-stop-icon.third {
+        background-color: #FEDF66;
       }
 
-      .trolley-stop-icon.red-green {
-        background-color: linear-gradient(to right, red 50%, green 50%);
+      .trolley-stop-icon.first-second {
+        background-color: linear-gradient(to right, #7659D1 50%, #9AB87A 50%);
       }
 
-      .trolley-stop-icon.red-green-blue {
-        background: linear-gradient(to right, red 33%, green 33%, green 66%, blue 66%)
+      .trolley-stop-icon.first-second-third {
+        background: linear-gradient(to right, #7659D1 33%, #9AB87A 33%, #9AB87A 66%, #FEDF66 66%)
       }
 
-      .trolley-stop-icon.green-blue {
-        background-color: linear-gradient(to right, green 50%, blue 50%);
+      .trolley-stop-icon.second-third {
+        background-color: linear-gradient(to right, #9AB87A 50%, #FEDF66 50%);
+      }
+
+      .trolley-stop-icon.first-third {
+        background-color: linear-gradient(to right, #7659D1 50%, #FEDF66 50%);
       }
 
       .leaflet-control-attribution {
@@ -73,7 +77,7 @@
       }
 
       .info-popup-lower {
-        top:40%;
+        top:35%;
       }
 
       .button-close {
@@ -99,7 +103,7 @@
     </div>
     <div id="notrolley" class="info-popup info-popup-lower" style="display:none">
       <p>There are no trolleys running currently!</p>
-      <p>Check the trolley schedule here: <a href="http://www.greenvillesc.gov/DocumentCenter/Home/View/4690">Greenlink</a></p>
+      <p id="scheduletitle"><b>Current Route Schedule:</b></p>
     </div>
 
     <!-- main map div -->
@@ -125,7 +129,7 @@
       var routes = []; //array of all routes
 			var stops = []; //array of all stops (for all routes)
       var trolleys = {}; //dictionary of trolleys
-      var routecolors = ["red", "green", "blue"]; //used to set route and stop colors
+      var routecolors = ["first", "second", "third"]; //used to set route and stop colors
 			var routeDisplay = [false, false]; //used for toggling route display - not currently toggleable
       var checkTimer; //Timer object to check for trolley location updates
 
@@ -320,8 +324,12 @@
       (function($){
 
         routedata = jQuery.parseJSON('{{routes|safe}}');
+        scheduledata = jQuery.parseJSON('{{schedule|safe}}')
 
         if (routedata.length == 0) {
+          scheduledata.forEach(function(schedule, scheduleIndex){
+            $("<p>" + schedule + "</p>").insertAfter("#scheduletitle");
+          });
           jQuery('#notrolley').show();
           shownotrolley = true;
         } else {

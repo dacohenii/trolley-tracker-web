@@ -245,6 +245,7 @@
 					});
 
           oMapMarker.Name = loc.Name;
+          oMapMarker.StopImageURL = loc.StopImageURL;
 
           bStopExists = false;
 
@@ -252,7 +253,7 @@
             if (existloc._latlng.lat == loc.Lat && existloc._latlng.lng == loc.Lon) {
               //then this stop is on two routes.  relying on setting the color name as the LAST class argument.  (first is trolley-stop-icon)
               //this will build color strings of all colors to show (red-green-blue if it's on three routes initialized in that order)
-              existloc.options.icon.options.className = existloc.options.icon.options.className + "-" + color.css
+              existloc.options.icon.options.className = existloc.options.icon.options.className + "-" + color.css;
             }
           });
 
@@ -262,7 +263,11 @@
 
       function addStops() {
         stops.forEach(function(loc, index, array) {
-          loc.addTo(oMap).bindPopup("<p><b>" + loc.Name + "</b></p>");
+          var sImageHTML = "";
+          if (loc.StopImageURL != null) {
+            sImageHTML = "<br><img src='" + loc.StopImageURL + "'/>";
+          }
+          loc.addTo(oMap).bindPopup("<p><b>" + loc.Name + "</b>" + sImageHTML + "</p>");
         });
       }
 

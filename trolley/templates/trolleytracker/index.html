@@ -93,6 +93,9 @@
     <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css">
+    <link rel="stylesheet" href="/static/vendor/leaflet-routing-machine/leaflet-routing-machine.css">
+    <link rel="stylesheet" href="/static/vendor/lrm-valhalla-0.0.9/leaflet.routing.valhalla.css">
+
     <script src="http://cdn.jsdelivr.net/jquery/2.1.4/jquery.min.js"></script>
   </head>
   <body>
@@ -127,6 +130,9 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.3/moment.min.js"></script>
     <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.min.js"></script>
     <script type="text/javascript" src="/static/trolleytracker/textpath/leaflet.textpath.js"></script>
+    <script type="text/javascript" src="/static/vendor/leaflet-routing-machine/leaflet-routing-machine.min.js"></script>
+    <script type="text/javascript" src="/static/vendor/lrm-valhalla-0.0.9/lrm-valhalla.min.js"></script>
+
     <script type="text/javascript">
 
       var shownotrolley = false;
@@ -334,6 +340,19 @@
 
       function closeNoTrolley() {
         jQuery('#notrolley').hide();
+      }
+
+      function getDirections(options){
+        navigator.geolocation.getCurrentPosition(function(pos){
+          L.Routing.control({
+            waypoints: [
+              L.latLng(pos.coords.latitude, pos.coords.longitude),
+              L.latLng(options.dest.lat, options.dest.lng)
+            ],
+            router: L.Routing.valhalla('valhalla-27i-1hw','pedestrian'),
+            formatter: new L.Routing.Valhalla.Formatter()
+          }).addTo(oMap);
+        });
       }
 
       (function($){

@@ -40,7 +40,7 @@ function initMap(data){
 }
 
 function getTrolleyLocations(map){
-  $ = jQuery;
+  var $ = jQuery;
   clearTimeout(checkTimer);
   //$('#getupdate').show();
   $.ajax({
@@ -52,27 +52,31 @@ function getTrolleyLocations(map){
       success: function (trolleydata) {
         //console.log("success!", data);
         trolleydata.forEach(function(data){
-          //remove existing trolley marker for the one we're updating
-          if (trolleys[data.ID] != undefined) {
-            map.removeLayer(trolleys[data.ID].mapMarker);
+          var popupText = "<p>Last Seen: <b>" + moment(data.LastBeaconTime).fromNow() + "</b></p>";
+
+          // create a marker for new trolleys, or update info on existing maker
+          if (!trolleys[data.ID]) {
+            //currently no way to tie trolleys to routes - so they're all one color
+            var trolleyIcon = L.AwesomeMarkers.icon({
+              icon: 'bus',
+              markerColor: 'red'
+            });
+
+            var oMapMarker = L.marker([data.CurrentLat, data.CurrentLon], {
+              icon: trolleyIcon
+            }).addTo(oMap).bindPopup(popupText);
+
+            //add the data to the trolleys object
+            trolleys[data.ID] = {
+              agentData: data,
+              mapMarker: oMapMarker
+            };
+          } else {
+              // existing trolley: update location and popup
+              trolleys[data.ID].mapMarker
+                .setLatLng([data.CurrentLat, data.CurrentLon])
+                .setPopupContent(popupText);
           }
-
-          //currently no way to tie trolleys to routes - so they're all one color
-          var trolleyMarker = L.AwesomeMarkers.icon({
-            icon: 'bus',
-            markerColor: 'red'
-          });
-
-          var oMapMarker = L.marker([data.CurrentLat, data.CurrentLon], {
-            icon: trolleyMarker
-          })
-          .addTo(map).bindPopup("<p>Last Seen: <b>" + data.LastBeaconTime + "</b></p>");;
-
-          //add the data to the trolleys object
-          trolleys[data.ID] = {
-            agentData: data,
-            mapMarker: oMapMarker
-          };
         });
       },
       complete: function(data) {

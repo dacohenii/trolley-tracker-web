@@ -4,15 +4,18 @@ from django.views.decorators.clickjacking import xframe_options_exempt
 import urllib.request
 import json
 
+#http://tracker.wallinginfosystems.com/api/v1/
+api_url='http://yeahthattrolley.azurewebsites.net/api/v1/' 
+
 # Create your views here.
 @xframe_options_exempt
 def track(request):
 	#get the list of currently active routes
-	activeroutes = json.loads(urllib.request.urlopen(urllib.request.Request("http://tracker.wallinginfosystems.com/api/v1/Routes/Active")).read().decode('utf-8'))
+	activeroutes = json.loads(urllib.request.urlopen(urllib.request.Request(api_url + "Routes/Active")).read().decode('utf-8'))
 	routes = []
 
 	#get the list of schedules in case there's no trolleys running
-	schedules = json.loads(urllib.request.urlopen(urllib.request.Request("http://tracker.wallinginfosystems.com/api/v1/RouteSchedules")).read().decode('utf-8'))
+	schedules = json.loads(urllib.request.urlopen(urllib.request.Request(api_url + "RouteSchedules")).read().decode('utf-8'))
 
 	#sort schedules
 	dayofweekorder = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
@@ -21,7 +24,7 @@ def track(request):
 	#using tuples to sort by day of week, then start time, then end time.
 
 	#have to make this call too in order to get the names of the routes
-	routenames = json.loads(urllib.request.urlopen(urllib.request.Request("http://tracker.wallinginfosystems.com/api/v1/Routes")).read().decode('utf-8'))
+	routenames = json.loads(urllib.request.urlopen(urllib.request.Request(api_url + "Routes")).read().decode('utf-8'))
 
 	schedule = []
 	for routeschedule in schedules:
@@ -34,10 +37,10 @@ def track(request):
 
 	for route in activeroutes:
 		#get the route definition for each active route
-		routes.append(json.loads(urllib.request.urlopen(urllib.request.Request("http://tracker.wallinginfosystems.com/api/v1/Routes/" + str(route['ID']))).read().decode('utf-8')))
+		routes.append(json.loads(urllib.request.urlopen(urllib.request.Request(api_url + "Routes/" + str(route['ID']))).read().decode('utf-8')))
 
 	#get the active trolley data
-	#trolleys = json.loads(urllib.request.urlopen(urllib.request.Request("http://tracker.wallinginfosystems.com/api/v1/Trolleys")).read().decode('utf-8'))
+	#trolleys = json.loads(urllib.request.urlopen(urllib.request.Request(api_url + "Trolleys")).read().decode('utf-8'))
 
 	context = {
 		'routes': json.dumps(routes),
@@ -49,10 +52,10 @@ def track(request):
 def update(request):
 	trolleys = []
 
-	activetrolleys = json.loads(urllib.request.urlopen(urllib.request.Request("http://tracker.wallinginfosystems.com/api/v1/Trolleys/Running")).read().decode('utf-8'))
+	activetrolleys = json.loads(urllib.request.urlopen(urllib.request.Request(api_url + "Trolleys/Running")).read().decode('utf-8'))
 
 	for trolley in activetrolleys:
-		trolleys.append(json.loads(urllib.request.urlopen(urllib.request.Request("http://tracker.wallinginfosystems.com/api/v1/Trolleys/" + str(trolley['ID']))).read().decode('utf-8')))
+		trolleys.append(json.loads(urllib.request.urlopen(urllib.request.Request(api_url + "Trolleys/" + str(trolley['ID']))).read().decode('utf-8')))
 
 
 	return HttpResponse(json.dumps(trolleys))

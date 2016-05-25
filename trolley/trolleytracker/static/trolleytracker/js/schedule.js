@@ -51,7 +51,7 @@ function initMap(data){
     scrollWheelZoom: false
   }).setView([data.lat, data.lng], 15);
   L.AwesomeMarkers.Icon.prototype.options.prefix = 'fa';
-  L.tileLayer('http://api.tiles.mapbox.com/v4/linktheoriginal.44f8689d/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibGlua3RoZW9yaWdpbmFsIiwiYSI6IjFjODFkODU1NGVkNWJhODQ2MTk5ZTk0OTVjNWYyZDE0In0.ptQUIfB07dQrUwDM2uMgUw', {
+  L.tileLayer('https://api.mapbox.com/styles/v1/linktheoriginal/ciom3jx8k0006bolzuqwm7o3m/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibGlua3RoZW9yaWdpbmFsIiwiYSI6IjFjODFkODU1NGVkNWJhODQ2MTk5ZTk0OTVjNWYyZDE0In0.ptQUIfB07dQrUwDM2uMgUw', {
     maxZoom: 18,
     id: 'examples.map-i875mjb7'
   }).addTo(oMap);

@@ -106,10 +106,9 @@
       <p><a href='mailto:yeahthattrolley@gmail.com'>Contact Us!</a></p>
       <p><button name="modal-close" class="button-close" onclick="javascript:closeInfo();"><i class='fa fa-close'></i>Close</button></p>
     </div>
-    <div id="notrolley" class="info-popup" style="display:none">
-      <p>There are no trolleys running currently!</p>
+    <div id="schedules" class="info-popup" style="display:none">
       <p id="scheduletitle"><b>Current Route Schedule:</b></p>
-      <p><button name="modal-close" class="button-close" onclick="javascript:closeNoTrolley();"><i class='fa fa-close'></i>Close</button></p>
+      <p><button name="modal-close" class="button-close" onclick="javascript:closeSchedule();"><i class='fa fa-close'></i>Close</button></p>
     </div>
 
     <!-- main map div -->
@@ -119,6 +118,7 @@
     <div id="controls_container" style="display: none;">
       <div id="controls">
         <div id='info-question' class='question-background' onclick="javascript:showInfo();"><i class='fa fa-question'></i></div>
+        <div id='info-schedule' class='question-background' onclick="javascript:showSchedule();"><i class='fa fa-calendar'></i></div>
       </div>
     </div>
     
@@ -132,6 +132,6 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.3/moment.min.js"></script>
     <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.min.js"></script>
     <script type="text/javascript" src="/static/trolleytracker/textpath/leaflet.textpath.js"></script>
-    <script type="text/javascript" src="/static/trolleytracker/js/app.js"></script>
+    <script type="text/javascript" src="/static/trolleytracker/js/main.js"></script>
   </body>
 </html>

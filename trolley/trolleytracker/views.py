@@ -1,31 +1,27 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.views.decorators.clickjacking import xframe_options_exempt
-# import urllib.request
+import urllib.request
 import json
-import requests
-
-api_url= 'http://tracker.wallinginfosystems.com/api/v1/'
-# api_url='http://yeahthattrolley.azurewebsites.net/api/v1/' 
 
 # Create your views here.
 @xframe_options_exempt
 def track(request):
 	#get the list of currently active routes
-	activeroutes = requests.get(api_url + "Routes/Active").json()
+	activeroutes = json.loads(urllib.request.urlopen(urllib.request.Request("http://tracker.wallinginfosystems.com/api/v1/Routes/Active")).read().decode('utf-8'))
 	routes = []
 
 	#get the list of schedules in case there's no trolleys running
-	schedules = requests.get(api_url + "RouteSchedules").json()
+	schedules = json.loads(urllib.request.urlopen(urllib.request.Request("http://tracker.wallinginfosystems.com/api/v1/RouteSchedules")).read().decode('utf-8'))
 
 	#sort schedules
 	dayofweekorder = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 	schedules.sort(key=lambda x: (dayofweekorder.index(x['DayOfWeek']), int(x['StartTime'][0:2].replace(':', '')) + (0 if 'AM' in x['StartTime'] else 12), int(x['EndTime'][0:2].replace(':', '')) + (0 if 'AM' in x['EndTime'] else 12)), reverse=True)
-	#this sorting quickly became pretty ugly.  I'm not returned clean datetimes from the API, so I'm replacing the first two of the time (hours, e.g. '4:' or '12') and adding 12 if it's PM.
+	#this sorting quickly became pretty ugly.  The api doesn't return clean datetimes, so I'm replacing the first two of the time (hours, e.g. '4:' or '12') and adding 12 if it's PM.
 	#using tuples to sort by day of week, then start time, then end time.
 
 	#have to make this call too in order to get the names of the routes
-	routenames = requests.get(api_url + "Routes").json()
+	routenames = json.loads(urllib.request.urlopen(urllib.request.Request("http://tracker.wallinginfosystems.com/api/v1/Routes")).read().decode('utf-8'))
 
 	schedule = []
 	for routeschedule in schedules:
@@ -34,14 +30,14 @@ def track(request):
 			if (route['ID'] == routeschedule['RouteID']):
 				schedulename = route['LongName']
 				break
-		schedule.append('<b>' + schedulename + ":</b><br>" + str(routeschedule['DayOfWeek']) + " " + str(routeschedule['StartTime']) + " - " + str(routeschedule['EndTime']))
+		schedule.append('<b><a href="schedule/' + str(routeschedule['RouteID']) + '/">' + schedulename + ":</a></b><br>" + str(routeschedule['DayOfWeek']) + " " + str(routeschedule['StartTime']) + " - " + str(routeschedule['EndTime']))
 
 	for route in activeroutes:
 		#get the route definition for each active route
-		routes.append(requests.get(api_url + "Routes/" + str(route['ID'])).json())
+		routes.append(json.loads(urllib.request.urlopen(urllib.request.Request("http://tracker.wallinginfosystems.com/api/v1/Routes/" + str(route['ID']))).read().decode('utf-8')))
 
 	#get the active trolley data
-	#trolleys = requests.get(api_url + "Trolleys").json()
+	#trolleys = json.loads(urllib.request.urlopen(urllib.request.Request("http://tracker.wallinginfosystems.com/api/v1/Trolleys")).read().decode('utf-8'))
 
 	context = {
 		'routes': json.dumps(routes),
@@ -51,7 +47,44 @@ def track(request):
 
 @xframe_options_exempt
 def update(request):
-	activetrolleys = requests.get(api_url + "Trolleys/Running").json()
-	trolleys = [requests.get(api_url + "Trolleys/" + str(trolley['ID'])).json() for trolley in activetrolleys]
+	trolleys = []
+
+	activetrolleys = json.loads(urllib.request.urlopen(urllib.request.Request("http://tracker.wallinginfosystems.com/api/v1/Trolleys/Running")).read().decode('utf-8'))
+
+	for trolley in activetrolleys:
+		trolleys.append(json.loads(urllib.request.urlopen(urllib.request.Request("http://tracker.wallinginfosystems.com/api/v1/Trolleys/" + str(trolley['ID']))).read().decode('utf-8')))
 
 	return HttpResponse(json.dumps(trolleys))
+
+@xframe_options_exempt
+def schedule(request, scheduleid):
+	schedules = json.loads(urllib.request.urlopen(urllib.request.Request("http://tracker.wallinginfosystems.com/api/v1/RouteSchedules")).read().decode('utf-8'))
+	scheduleroute = json.loads(urllib.request.urlopen(urllib.request.Request("http://tracker.wallinginfosystems.com/api/v1/Routes/" + scheduleid)).read().decode('utf-8'))
+	routenames = json.loads(urllib.request.urlopen(urllib.request.Request("http://tracker.wallinginfosystems.com/api/v1/Routes")).read().decode('utf-8'))
+
+	routes = []
+	routes.append(scheduleroute)
+
+	dayofweekorder = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+	schedules.sort(key=lambda x: (dayofweekorder.index(x['DayOfWeek']), int(x['StartTime'][0:2].replace(':', '')) + (0 if 'AM' in x['StartTime'] else 12), int(x['EndTime'][0:2].replace(':', '')) + (0 if 'AM' in x['EndTime'] else 12)), reverse=True)
+
+	schedule = []
+	runs = []
+	for routeschedule in schedules:
+		schedulename = "Route " + str(routeschedule['ID'])
+		for route in routenames:
+			if (route['ID'] == routeschedule['RouteID']):
+				schedulename = route['LongName']
+				break
+		schedule.append('<b><a href="../' + str(routeschedule['RouteID']) + '/">' + schedulename + ":</a></b><br>" + str(routeschedule['DayOfWeek']) + " " + str(routeschedule['StartTime']) + " - " + str(routeschedule['EndTime']))
+		if (int(routeschedule['RouteID']) == int(scheduleid)):
+			runs.append(str(routeschedule['DayOfWeek']) + ": " + str(routeschedule['StartTime']) + " - " + str(routeschedule['EndTime']))
+
+	context = {
+		'routes': json.dumps(routes),
+		'schedule': json.dumps(schedule),
+		'runs_on': json.dumps(runs)
+	}
+	return render(request, 'trolleytracker/schedule.html', context)
+
+	return HttpResponse()

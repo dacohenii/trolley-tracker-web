@@ -91,28 +91,44 @@ function getTrolleyLocations(map) {
     });
 }
 
-function buildRoute(data, route_name, color) {
+function buildRoute(data, ndx, arr) {
     //data is an array of lat/lon objects
     //[{lat:1, lon:1}, {lat:2, lon:2}, ...]
-    var pointList = [];
-    data.forEach(function(loc, index, array) {
-        pointList.push(new L.LatLng(loc.Lat, loc.Lon));
+    var routeColor = routecolors[ndx];
+    var pointList = data.RouteShape.map(function(loc) {
+        return new L.LatLng(loc.Lat, loc.Lon);
     });
     var routePolyLine = new L.Polyline(pointList, {
-        color: color.color,
+        color: routeColor.color,
         weight: 3,
         opacity: 0.5,
         smoothFactor: 1
-    });
-    //use the settext plugin to add directional arrows to the route.
-    routePolyLine.setText('  ►  ', {
-        repeat: true,
-        attributes: {
-            fill: color.color
-        }
-    });
-    //store the new polyline in the routes object
-    routes.push(routePolyLine);
+    }).addTo(oMap);
+    var decorator = L.polylineDecorator(routePolyLine, {
+        patterns: [
+            {
+                offset: 3,
+                endOffset: 1,
+                repeat: 33,
+                symbol: L.Symbol.arrowHead({
+                    pixelSize: 10,
+                    polygon: true,
+                    pathOptions: {
+                        color: routeColor.color,
+                        fillColor: routeColor.color,
+                        fill: true,
+                        weight: 1,
+                        fillOpacity: 0.9,
+                        stroke: false
+                    }
+                })
+            }
+        ]
+    }).addTo(oMap);
+}
+
+function buildRoutes(routedata) {
+    routedata.map(buildRoute);
 }
 
 function buildStops(stoplocs, color) {
@@ -145,12 +161,6 @@ function addStops() {
           sImageHTML = "<br><img src='" + loc.StopImageURL + "'/>";
         }*/
         loc.addTo(oMap).bindPopup("<p><b>" + loc.Name + "</b>" + sImageHTML + "</p>");
-    });
-}
-
-function addRoutes() {
-    routes.forEach(function(route, routeIndex) {
-        route.addTo(oMap);
     });
 }
 
@@ -224,22 +234,19 @@ function showSchedule() {
     });
     //for debugging no trolley behavior while trolleys are running
     //routedata= [];
-    if (routedata.length == 0) {
-        showSchedules = true;
-        showSchedule();
-    } else {
-        routedata.forEach(function(route, routeIndex) {
-            buildRoute(route.RouteShape, "route_" + routeIndex, routecolors[routeIndex]);
-        });
-    }
-    routedata.forEach(function(route, routeIndex) {
-        buildStops(route.Stops, routecolors[routeIndex]);
-    });
     initMap({
         lat: 34.852432,
         lng: -82.398216
     });
-    addRoutes();
+    if (routedata.length === 0) {
+        showSchedules = true;
+        showSchedule();
+    } else {
+        buildRoutes(routedata);
+    }
+    routedata.forEach(function(route, routeIndex) {
+        buildStops(route.Stops, routecolors[routeIndex]);
+    });
     addStops();
     getTrolleyLocations(oMap);
 })(jQuery);

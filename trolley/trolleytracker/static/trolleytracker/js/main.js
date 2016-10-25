@@ -35,12 +35,12 @@ function initMap(data) {
         scrollWheelZoom: false
     }).setView([data.lat, data.lng], 15);
     L.AwesomeMarkers.Icon.prototype.options.prefix = 'fa';
-    L.tileLayer('https://api.mapbox.com/styles/v1/linktheoriginal/ciom3jx8k0006bolzuqwm7o3m/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibGlua3RoZW9yaWdpbmFsIiwiYSI6IjFjODFkODU1NGVkNWJhODQ2MTk5ZTk0OTVjNWYyZDE0In0.ptQUIfB07dQrUwDM2uMgUw', {
-        maxZoom: 18,
-        tileSize: 512,
-        zoomOffset: -1,
-        id: 'examples.map-i875mjb7'
-    }).addTo(oMap);
+    var token = 'pk.eyJ1IjoibGlua3RoZW9yaWdpbmFsIiwiYSI6IjFjODFkODU1NGVkNWJhODQ2MTk5ZTk0OTVjNWYyZDE0In0.ptQUIfB07dQrUwDM2uMgUw';
+    var gl = L.mapboxGL({
+            accessToken: token,
+            style: 'mapbox://styles/mapbox/bright-v8'
+        }).addTo(oMap);
+
     getTrolleyLocations(oMap);
     getUserLocation(oMap);
     oMap.addControl(new oMapControl());

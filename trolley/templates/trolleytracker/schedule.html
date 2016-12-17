@@ -66,21 +66,25 @@
       }
 
       .info-popup {
-        width: 80%;
+        width: 300px;
         position: absolute;
-        left: 10%;
-        right: 10%;
+        left: 20%;
         z-index: 9999;
         top: 5%;
-        background-color: white;
+        background: rgba(255,255,255, .6);
         border-style: solid;
-        border-color: gray;
+        border-color: #999;
         border-radius: 10px;
       }
 
       p {
-        font-size: small;
+        font-size: .85em;
         margin: 5px;
+        font-family: 'Cabin Condensed', sans-serif;
+        color: #222;
+        text-rendering: optimizeLegibility;
+        margin-top: 0.2em;
+        margin-bottom: 0.5em;
       }
 
       .info-popup p {
@@ -112,7 +116,7 @@
       <p>API Powered by <a href="http://wallingis.com/">Walling Info Systems</a>
       <p>Built by the Code For Greenville Brigade: <a href="https://github.com/codeforgreenville">Github</a></p>
       <p><a href='mailto:yeahthattrolley@gmail.com'>Contact Us!</a></p>
-      <p><button name="modal-close" class="button-close" onclick="javascript:closeInfo();"><i class='fa fa-close'></i>Close</button></p>
+      <p><button name="modal-close" class="button-close" onclick="javascript:closeInfo();"><i class='fa fa-close'></i> Close</button></p>
     </div>
     <div id="schedules" class="info-popup" style="display:none">
       <p id="scheduletitle"><b>Current Route Schedule:</b></p>

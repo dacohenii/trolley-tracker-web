@@ -1,0 +1,31 @@
+{
+  "name": "trolley-tracker-web",
+  "version": "1.0.0",
+  "description": "Code for Greenville - Trolley Tracker Web",
+  "main": "./assets/js/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://dacohenii@github.com/dacohenii/trolley-tracker-web.git"
+  },
+  "author": "David A. Cohen II",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/dacohenii/trolley-tracker-web/issues"
+  },
+  "homepage": "https://github.com/dacohenii/trolley-tracker-web#readme",
+  "devDependencies": {
+    "babel": "^6.23.0",
+    "babel-core": "^6.24.1",
+    "babel-loader": "^7.0.0",
+    "babel-preset-env": "^1.4.0",
+    "eslint": "^3.19.0",
+    "eslint-config-airbnb-base": "^11.1.3",
+    "eslint-plugin-import": "^2.2.0",
+    "react": "^15.5.4",
+    "webpack": "^2.5.1",
+    "webpack-bundle-tracker": "^0.2.0"
+  }
+}

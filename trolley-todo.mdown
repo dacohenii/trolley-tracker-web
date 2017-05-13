@@ -1,0 +1,6 @@
+go through issues
+get versioning in control
+route path time prediction
+draw diagram
+consolidate marketing site + map
+turn-by-turn directions to stops

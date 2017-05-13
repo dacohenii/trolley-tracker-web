@@ -1,3 +1,4 @@
+{% load render_bundle from webpack_loader %}
 <!DOCTYPE html>
 <html>
   <head>
@@ -96,6 +97,7 @@
     <script src="http://cdn.jsdelivr.net/jquery/2.1.4/jquery.min.js"></script>
   </head>
   <body>
+     {% render_bundle 'main' %}
 
     <div id='info' class='info-popup' style='display:none;'>
       <p>Map data is from <a href='http://openstreetmap.org'>OpenStreetMap&copy;</a> contributors, <a href='http://creativecommons.org/licenses/by-sa/2.0/'>CC-BY-SA</a>.</p>

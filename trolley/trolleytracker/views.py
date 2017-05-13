@@ -4,8 +4,8 @@ from django.views.decorators.clickjacking import xframe_options_exempt
 import urllib.request
 import json
 
-#API_URL = 'http://tracker.wallinginfosystems.com/api/v1/'
-API_URL='http://yeahthattrolley.azurewebsites.net/api/v1/' 
+API_URL = 'http://tracker.wallinginfosystems.com/api/v1/'
+# API_URL='http://yeahthattrolley.azurewebsites.net/api/v1/' 
 
 
 

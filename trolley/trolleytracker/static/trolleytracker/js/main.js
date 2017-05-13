@@ -164,20 +164,6 @@ function addStops() {
     });
 }
 
-function hideStops(map, hideStops) {
-    //this is currently not used - left in for future use
-    for (var stop in hideStops) {
-        map.removeLayer(hideStops[stop]);
-    }
-}
-
-function hideTrolleyPaths(map) {
-    routeDisplay.forEach(function(route, index, array) {
-        if (route) {
-            map.removeLayer(routes['route_' + index]);
-        }
-    });
-}
 /*
  * Attempt to geolocate the user through the browser, and, if 
  * successful, add a pin for the user's current location and
